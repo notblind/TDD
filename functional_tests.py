@@ -14,6 +14,12 @@ class NewUserSite(unittest.TestCase):
 		'''завершение'''
 		self.browser.quit()
 
+	def check(self, row_text):
+		'''подтверждение строки в таблице'''
+		table = self.browser.find_element_by_id('list_table')
+		rows = table.find_elements_by_tag_name('td')
+		self.assertIn(row_text, [row.text for row in rows])
+
 	def test_start_list_and_retrieve_it(self):
 		'''тест: начало заполнения списка и предоставлние его позже'''
 
@@ -34,22 +40,25 @@ class NewUserSite(unittest.TestCase):
 		inputbox.send_keys('Купить хлеб')
 
 		#Нажимает Enter
-		#Страница обновляется и появлется надпись "1. купить хлеб"
+		#Страница обновляется и появлется надпись "купить хлеб"
 		inputbox.send_keys(Keys.ENTER)
 		time.sleep(1)
 
-		table = self.browser.find_element_by_id('list_table')
-		rows = table.find_elements_by_tag_name('tr')
-		self.assertTrue(
-			any(row.text=='1: Купить хлеб' for row in rows),
-			'Новый элемент не появился в таблице'
-			)
+		self.check('Купить хлеб')
 
 		#Форма для ввода также присутвует
+		inputbox = self.browser.find_element_by_id('new_item')
 
 		#Пользователь вводит еще одно дело (полить цветы)
-		#Нажимает на кнопку добавить
+		inputbox.send_keys('Полить цветы')
+
+		#Нажимает Enter
+		inputbox.send_keys(Keys.ENTER)
+		time.sleep(1)
+
 		#Страница обновляется и выводится уже две строчки дел
+		self.check('Купить хлеб')
+		self.check('Полить цветы')
 
 		#Пользователь хочет проверить, запомнит ли сайт ее дела при следующем входе на сайт
 		#На сайте есть пояснение об url адресе
