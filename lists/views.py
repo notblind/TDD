@@ -5,5 +5,5 @@ from django.http import HttpResponse
 
 def index(request):
 	'''Домашняя страница'''
-	return HttpResponse('<html><title>Список дел</title></html>')
+	return render(request, 'lists/index.html')
 
