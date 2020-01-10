@@ -1,9 +1,9 @@
 from django.shortcuts import render
-
+from django.http import HttpResponse
 # Create your views here.
 
 
-def index():
+def index(request):
 	'''Домашняя страница'''
-	pass
+	return HttpResponse('<html><title>Список дел</title></html>')
 
