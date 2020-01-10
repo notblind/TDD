@@ -23,7 +23,7 @@ class NewUserSite(unittest.TestCase):
 		#Пользователь видит в заголовке и шапке сайта название 'Список дел'
 		self.assertIn('Список дел', self.browser.title)
 		header_text = self.browser.find_element_by_tag_name('h1').text
-		self.assertIn('Список дел', header_text)
+		self.assertIn('СПИСОК ДЕЛ', header_text)
 		
 
 		#На странице сразу же располагается форма для ввода дела
@@ -40,8 +40,9 @@ class NewUserSite(unittest.TestCase):
 
 		table = self.browser.find_element_by_id('list_table')
 		rows = table.find_elements_by_tag_name('tr')
-		self.asserTrue(
-			any(row.text=='1: Купить хлеб' for row in rows)
+		self.assertTrue(
+			any(row.text=='1: Купить хлеб' for row in rows),
+			'Новый элемент не появился в таблице'
 			)
 
 		#Форма для ввода также присутвует
