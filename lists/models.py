@@ -4,4 +4,3 @@ from django.db import models
 
 class Item(models.Model):
 	text = models.TextField(blank=False)
-	date = models.DateField(auto_now_add=True)
