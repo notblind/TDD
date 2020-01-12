@@ -4,9 +4,12 @@ import time
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 
 class NewUserSite(LiveServerTestCase):
 	'''тест нового юзера'''
+
+	MAX_WAIT = 10
 
 	def setUp(self):
 		'''установка'''
@@ -16,11 +19,19 @@ class NewUserSite(LiveServerTestCase):
 		'''завершение'''
 		self.browser.quit()
 
-	def check(self, row_text):
-		'''подтверждение строки в таблице'''
-		table = self.browser.find_element_by_id('list_table')
-		rows = table.find_elements_by_tag_name('td')
-		self.assertIn(row_text, [row.text for row in rows])
+	def wait_for_row_in_list_table(self, row_text):
+		'''ожидание строки в таблице'''
+		start_time = time.time()
+		while True:
+			try:
+				table = self.browser.find_element_by_id('list_table')
+				rows = table.find_elements_by_tag_name('td')
+				self.assertIn(row_text, [row.text for row in rows])
+				return
+			except(AssertionError, WebDriverException) as e:
+				if time.tine() - start_time > MAX_WAIT:
+					raise e
+				time.sleep(0.5)
 
 	def test_start_list_and_retrieve_it(self):
 		'''тест: начало заполнения списка и предоставлние его позже'''
@@ -46,7 +57,7 @@ class NewUserSite(LiveServerTestCase):
 		inputbox.send_keys(Keys.ENTER)
 		time.sleep(1)
 
-		self.check('Купить хлеб')
+		self.wait_for_row_in_list_table('Купить хлеб')
 
 		#Форма для ввода также присутвует
 		inputbox = self.browser.find_element_by_id('new_item')
@@ -59,8 +70,8 @@ class NewUserSite(LiveServerTestCase):
 		time.sleep(1)
 
 		#Страница обновляется и выводится уже две строчки дел
-		self.check('Купить хлеб')
-		self.check('Полить цветы')
+		self.wait_for_row_in_list_table('Купить хлеб')
+		self.wait_for_row_in_list_table('Полить цветы')
 
 		#Пользователь хочет проверить, запомнит ли сайт ее дела при следующем входе на сайт
 		#На сайте есть пояснение об url адресе
