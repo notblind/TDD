@@ -1,9 +1,11 @@
-from selenium import webdriver
-import unittest
+from django.test import LiveServerTestCase
+
 import time
+
+from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-class NewUserSite(unittest.TestCase):
+class NewUserSite(LiveServerTestCase):
 	'''тест нового юзера'''
 
 	def setUp(self):
@@ -24,12 +26,12 @@ class NewUserSite(unittest.TestCase):
 		'''тест: начало заполнения списка и предоставлние его позже'''
 
 		#Пользователь открывает гланвую страницу
-		self.browser.get('http://localhost:8000')
+		self.browser.get(self.live_server_url)
 
 		#Пользователь видит в заголовке и шапке сайта название 'Список дел'
 		self.assertIn('Список дел', self.browser.title)
 		header_text = self.browser.find_element_by_tag_name('h1').text
-		self.assertIn('СПИСОК ДЕЛ', header_text)
+		self.assertIn('Список дел', header_text)
 		
 
 		#На странице сразу же располагается форма для ввода дела
@@ -68,7 +70,3 @@ class NewUserSite(unittest.TestCase):
 
 		#Пользователь покидает сайт
 		self.fail('Закончить тест')
-
-if __name__=='__main__':
-	unittest.main(warnings='ignore')
-
