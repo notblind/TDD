@@ -9,6 +9,25 @@ from .models import Item
 
 # Create your tests here.
 
+class ListViewTest(TestCase):
+	'''тест представления списка'''
+
+	def test_user_list_template(self):
+		'''тест: используется шаблон спсика'''
+		response = self.client.get('/lists/el/')
+		self.assertTemplateUsed(response, 'lists/list.html')
+
+	def test_displays_all_list_items(self):
+		'''тест: отображаются все эелемнты списка'''
+		Item.objects.create(text='item 1')
+		Item.objects.create(text='item 2')
+
+		response = self.client.get('/lists/el/')
+
+		self.assertContains(response, 'item 1')
+		self.assertContains(response, 'item 2')
+
+
 class IndexTest(TestCase):
 	'''тест домашней страницы'''
 
@@ -29,7 +48,7 @@ class IndexTest(TestCase):
 		'''тест: переадресует после post-запроса'''
 		response = self.client.post('/', data={'item_text': 'A new list item'})
 		self.assertEqual(response.status_code, 302)
-		self.assertEqual(response['location'], '/')
+		self.assertEqual(response['location'], '/lists/el/')
 
 	def test_saving_and_retrieving_item(self):
 		'''тест: сохранение и получение элементов списка'''
@@ -54,12 +73,5 @@ class IndexTest(TestCase):
 		self.client.get('/')
 		self.assertEqual(Item.objects.count(), 0)
 
-	def test_displays_all_list_items(self):
-		'''тест: отображаются все эелемнты списка'''
-		Item.objects.create(text='item 1')
-		Item.objects.create(text='item 2')
 
-		response = self.client.get('/')
 
-		self.assertIn('item 1', response.content.decode())
-		self.assertIn('item 2', response.content.decode())

@@ -29,12 +29,12 @@ class NewUserSite(LiveServerTestCase):
 				self.assertIn(row_text, [row.text for row in rows])
 				return
 			except(AssertionError, WebDriverException) as e:
-				if time.tine() - start_time > MAX_WAIT:
+				if time.time() - start_time > NewUserSite.MAX_WAIT:
 					raise e
 				time.sleep(0.5)
 
-	def test_start_list_and_retrieve_it(self):
-		'''тест: начало заполнения списка и предоставлние его позже'''
+	def test_start_list_for_one_user(self):
+		'''тест: начало заполнения списка для одного пользователя'''
 
 		#Пользователь открывает гланвую страницу
 		self.browser.get(self.live_server_url)
@@ -72,12 +72,49 @@ class NewUserSite(LiveServerTestCase):
 		#Страница обновляется и выводится уже две строчки дел
 		self.wait_for_row_in_list_table('Купить хлеб')
 		self.wait_for_row_in_list_table('Полить цветы')
-
-		#Пользователь хочет проверить, запомнит ли сайт ее дела при следующем входе на сайт
-		#На сайте есть пояснение об url адресе
-		#П нему список пользователя будет сохранен
-
-		#Пользователь посещает url адрес и спсок дел остается
-
 		#Пользователь покидает сайт
-		self.fail('Закончить тест')
+
+
+	def test_multiple_users_can_start_lists_at_different_urls(self):
+		'''тест: многочтсленнве пользователи могут начать списки по разным url'''
+
+		#Пользователь #1 начинает новый список
+		self.browser.get(self.live_server_url)
+		inputbox = self.browser.find_element_by_id('new_item')
+		inputbox.send_keys('Купить молоко')
+		inputbox.send_keys(Keys.ENTER)
+		self.wait_for_row_in_list_table('Купить молоко')
+
+		#Пользователь #1 замечает, что список имеет уникальный URL
+		user_first_list_url = self.browser.current_url
+		self.assertRegex(user_first_list_url, '/lists/.+')
+
+		#Пришел пользователь #2
+		#Используем новый сеанс браузера, тем самым обеспечивая, чтобы
+		#никакая информация от пользователя #1 не прошла через данные cookie и пр.
+
+		self.browser.quit()
+		self.browser = webdriver.Firefox()
+
+		#Пользователь #2 посещает домашнюю страницу. Списка пользователя #1 нет.
+		self.browser.get(self.live_server_url)
+		page_text = self.browser.find_element_by_tag_name('body').text
+		self.assertNotIn('Купить молоко', page_text) 
+
+		#Пользователь #2 начинает новый список, вводя новый элемент.
+		inputbox = self.browser.find_element_by_id('new_item')
+		inputbox.send_keys('Хорошенько отдохнуть')
+		inputbox.send_keys(Keys.ENTER)
+		self.wait_for_row_in_list_table('Хорошенько отдохнуть')
+
+		#Пользователь #2 получает уникальный URL
+		user_second_list_url = self.browser.current_url
+		self.assertRegex(user_second_list_url, '/lists/.+')
+		self.assertNotEqual(user_second_list_url, user_first_list_url)
+
+		#Дополнительная проверка на отсутствие данных от пользователя #1
+		page_text = self.browser.find_element_by_tag_name('body').text
+		self.assertNotIn('Купить молоко', page_text)
+		self.assertIn('Хорошенько отдохнуть', page_text)
+
+		#Оба пользователя покидают сайт
